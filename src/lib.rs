@@ -1,3 +1,7 @@
+mod linked_list;
+mod queue;
+mod stack;
+
 pub fn add(left: usize, right: usize) -> usize {
     left + right
 }
