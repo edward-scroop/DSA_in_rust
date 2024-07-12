@@ -5,7 +5,7 @@ trait Stack<T: Clone> {
 
     fn peek(&self) -> Result<T, Error>;
 
-    fn count(&self) -> std::primitive::usize;
+    fn count(&self) -> usize;
 
     fn is_empty(&self) -> bool;
 }
@@ -31,7 +31,7 @@ impl std::fmt::Display for Error {
 
 pub struct VecStack<T> {
     stack: Vec<T>,
-    count: std::primitive::usize,
+    count: usize,
 }
 
 impl<T> VecStack<T> {
@@ -66,7 +66,7 @@ impl<T: Clone> Stack<T> for VecStack<T> {
         }
     }
 
-    fn count(&self) -> std::primitive::usize {
+    fn count(&self) -> usize {
         self.count
     }
 
@@ -77,7 +77,7 @@ impl<T: Clone> Stack<T> for VecStack<T> {
 
 pub struct ListStack<T> {
     root_node: Option<Box<ListStackNode<T>>>,
-    count: std::primitive::usize,
+    count: usize,
 }
 
 struct ListStackNode<T> {
@@ -127,7 +127,7 @@ impl<T: Clone> Stack<T> for ListStack<T> {
         }
     }
 
-    fn count(&self) -> std::primitive::usize {
+    fn count(&self) -> usize {
         self.count
     }
 

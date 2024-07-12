@@ -5,14 +5,14 @@ trait Queue<T> {
 
     fn peek(&self) -> Result<T, Error>;
 
-    fn count(&self) -> std::primitive::usize;
+    fn count(&self) -> usize;
 
     fn is_empty(&self) -> bool;
 }
 
 pub struct ShuffleQueue<T> {
     queue: Vec<T>,
-    count: std::primitive::usize,
+    count: usize,
 }
 
 #[derive(Debug)]
@@ -66,7 +66,7 @@ impl<T: Clone> Queue<T> for ShuffleQueue<T> {
         }
     }
 
-    fn count(&self) -> std::primitive::usize {
+    fn count(&self) -> usize {
         self.count
     }
 
