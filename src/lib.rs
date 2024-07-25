@@ -1,3 +1,4 @@
+mod binary_heap;
 mod linked_list;
 mod queue;
 mod stack;
