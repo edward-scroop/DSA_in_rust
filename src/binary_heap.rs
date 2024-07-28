@@ -55,7 +55,7 @@ impl<T> BinaryMinHeap<T> {
                     break;
                 }
                 current_index = parent_index;
-                parent_index = (current_index * 2) + 1;
+                parent_index = (current_index - 1) / 2;
             } else {
                 break;
             }
@@ -71,10 +71,14 @@ impl<T> BinaryMinHeap<T> {
         );
 
         loop {
-            if (smallest_index > left_index) && (left_index < self.size) {
+            if (left_index < self.size)
+                && (self.heap[left_index].key < self.heap[smallest_index].key)
+            {
                 smallest_index = left_index;
             }
-            if (smallest_index > right_index) && (right_index < self.size) {
+            if (right_index < self.size)
+                && (self.heap[right_index].key < self.heap[smallest_index].key)
+            {
                 smallest_index = right_index;
             }
 
@@ -102,11 +106,11 @@ impl<T: Clone> BinaryHeap<T> for BinaryMinHeap<T> {
         }
         let data = self.heap[0].data.clone();
 
-        if self.size > 1 {
-            self.heap.swap(0, self.size - 1);
+        self.size -= 1;
+        if self.size > 0 {
+            self.heap.swap(0, self.size);
             self.down_heap(0);
         }
-        self.size -= 1;
 
         Ok(data)
     }
@@ -125,6 +129,7 @@ impl<T: Clone> BinaryHeap<T> for BinaryMinHeap<T> {
 
     fn search(&self, key: usize) -> Result<T, HeapError> {
         let mut current_index = 0usize;
+        let mut left_child_larger = false;
 
         if self.size == 0 {
             return Err(HeapError::HeapEmpty);
@@ -133,10 +138,15 @@ impl<T: Clone> BinaryHeap<T> for BinaryMinHeap<T> {
             if self.heap[current_index].key == key {
                 return Ok(self.heap[current_index].data.clone());
             } else if self.heap[current_index].key > key {
-                return Err(HeapError::KeyNotFound);
+                if left_child_larger == true {
+                    return Err(HeapError::KeyNotFound);
+                } else {
+                    left_child_larger = true;
+                    current_index += 1;
+                }
             } else {
-                current_index = (current_index * 2) + 2;
-                if current_index >= self.size {
+                current_index += 1;
+                if current_index == self.size {
                     return Err(HeapError::KeyNotFound);
                 }
             }
@@ -184,7 +194,7 @@ impl<T> BinaryMaxHeap<T> {
                     break;
                 }
                 current_index = parent_index;
-                parent_index = (current_index * 2) + 1;
+                parent_index = (current_index - 1) / 2;
             } else {
                 break;
             }
@@ -200,10 +210,14 @@ impl<T> BinaryMaxHeap<T> {
         );
 
         loop {
-            if (largest_index < left_index) && (left_index < self.size) {
+            if (left_index < self.size)
+                && (self.heap[left_index].key > self.heap[largest_index].key)
+            {
                 largest_index = left_index;
             }
-            if (largest_index < right_index) && (right_index < self.size) {
+            if (right_index < self.size)
+                && (self.heap[right_index].key > self.heap[largest_index].key)
+            {
                 largest_index = right_index;
             }
 
@@ -231,11 +245,11 @@ impl<T: Clone> BinaryHeap<T> for BinaryMaxHeap<T> {
         }
         let data = self.heap[0].data.clone();
 
-        if self.size > 1 {
-            self.heap.swap(0, self.size - 1);
+        self.size -= 1;
+        if self.size > 0 {
+            self.heap.swap(0, self.size);
             self.down_heap(0);
         }
-        self.size -= 1;
 
         Ok(data)
     }
@@ -254,6 +268,7 @@ impl<T: Clone> BinaryHeap<T> for BinaryMaxHeap<T> {
 
     fn search(&self, key: usize) -> Result<T, HeapError> {
         let mut current_index = 0usize;
+        let mut left_child_smaller = false;
 
         if self.size == 0 {
             return Err(HeapError::HeapEmpty);
@@ -262,10 +277,15 @@ impl<T: Clone> BinaryHeap<T> for BinaryMaxHeap<T> {
             if self.heap[current_index].key == key {
                 return Ok(self.heap[current_index].data.clone());
             } else if self.heap[current_index].key < key {
-                return Err(HeapError::KeyNotFound);
+                if left_child_smaller == true {
+                    return Err(HeapError::KeyNotFound);
+                } else {
+                    left_child_smaller = true;
+                    current_index += 1;
+                }
             } else {
-                current_index = (current_index * 2) + 2;
-                if current_index >= self.size {
+                current_index += 1;
+                if current_index == self.size {
                     return Err(HeapError::KeyNotFound);
                 }
             }
@@ -318,84 +338,103 @@ mod tests {
     #[test]
     fn min_heap_extract() {
         let mut test_heap = BinaryMinHeap::new(Some(3));
-        let (test_data_1, test_data_2, test_data_3) = (1, 512, 10240000);
-        let (test_key_1, test_key_2, test_key_3) = (10240000, 512, 1);
+        let (test_data_1, test_data_2, test_data_3, test_data_4, test_data_5) = (1, 2, 3, 4, 2);
+        let (test_key_1, test_key_2, test_key_3, test_key_4, test_key_5) = (1, 2, 3, 400, 2);
 
-        test_heap.insert(test_data_1.clone(), test_key_1);
         test_heap.insert(test_data_2.clone(), test_key_2);
+        test_heap.insert(test_data_4.clone(), test_key_4);
+        test_heap.insert(test_data_5.clone(), test_key_5);
+        test_heap.insert(test_data_1.clone(), test_key_1);
         test_heap.insert(test_data_3.clone(), test_key_3);
 
-        assert!(test_heap.size() == 3);
-        assert!(test_heap.extract().unwrap() == test_data_3);
-        assert!(test_heap.size() == 2);
-        assert!(test_heap.extract().unwrap() == test_data_2);
-        assert!(test_heap.size() == 1);
+        assert!(test_heap.size() == 5);
         assert!(test_heap.extract().unwrap() == test_data_1);
+        assert!(test_heap.size() == 4);
+        assert!(test_heap.extract().unwrap() == test_data_2);
+        assert!(test_heap.size() == 3);
+        assert!(test_heap.extract().unwrap() == test_data_5);
+        assert!(test_heap.size() == 2);
+        assert!(test_heap.extract().unwrap() == test_data_3);
+        assert!(test_heap.size() == 1);
+        assert!(test_heap.extract().unwrap() == test_data_4);
         assert!(test_heap.size() == 0);
+        assert!(test_heap.extract().is_err());
     }
 
     #[test]
     fn max_heap_extract() {
         let mut test_heap = BinaryMaxHeap::new(Some(3));
-        let (test_data_1, test_data_2, test_data_3) = (1, 512, 10240000);
-        let (test_key_1, test_key_2, test_key_3) = (10240000, 512, 1);
+        let (test_data_1, test_data_2, test_data_3, test_data_4, test_data_5) = (1, 2, 3, 4, 3);
+        let (test_key_1, test_key_2, test_key_3, test_key_4, test_key_5) = (1, 2, 3, 400, 3);
 
-        test_heap.insert(test_data_1.clone(), test_key_3);
+        test_heap.insert(test_data_3.clone(), test_key_3);
+        test_heap.insert(test_data_1.clone(), test_key_1);
+        test_heap.insert(test_data_5.clone(), test_key_5);
+        test_heap.insert(test_data_4.clone(), test_key_4);
         test_heap.insert(test_data_2.clone(), test_key_2);
-        test_heap.insert(test_data_3.clone(), test_key_1);
 
+        assert!(test_heap.size() == 5);
+        assert!(test_heap.extract().unwrap() == test_data_4);
+        assert!(test_heap.size() == 4);
+        assert!(test_heap.extract().unwrap() == test_data_3);
         assert!(test_heap.size() == 3);
-        assert!(test_heap.extract().unwrap() == test_data_1);
+        assert!(test_heap.extract().unwrap() == test_data_5);
         assert!(test_heap.size() == 2);
         assert!(test_heap.extract().unwrap() == test_data_2);
         assert!(test_heap.size() == 1);
-        assert!(test_heap.extract().unwrap() == test_data_3);
+        assert!(test_heap.extract().unwrap() == test_data_1);
         assert!(test_heap.size() == 0);
+        assert!(test_heap.extract().is_err());
     }
 
     #[test]
     fn min_heap_insert_extract() {
-        let mut test_heap = BinaryMinHeap::new(None);
-        let (test_data_1, test_data_2, test_data_3, test_data_4) = (1, 512, 10240000, 1024);
-        let (test_key_1, test_key_2, test_key_3, test_key_4) = (10240000, 512, 1, 1024);
+        let mut test_heap = BinaryMinHeap::new(Some(3));
+        let (test_data_1, test_data_2, test_data_3, test_data_4, test_data_5) = (1, 2, 3, 4, 2);
+        let (test_key_1, test_key_2, test_key_3, test_key_4, test_key_5) = (1, 2, 3, 400, 2);
 
-        test_heap.insert(test_data_1.clone(), test_key_3);
         test_heap.insert(test_data_2.clone(), test_key_2);
-        test_heap.insert(test_data_3.clone(), test_key_1);
+        test_heap.insert(test_data_4.clone(), test_key_4);
+        test_heap.insert(test_data_5.clone(), test_key_5);
+        test_heap.insert(test_data_1.clone(), test_key_1);
 
-        assert!(test_heap.size() == 3);
-        assert!(test_heap.insert_extract(test_data_4, test_key_4) == test_data_3);
-        assert!(test_heap.size() == 3);
+        assert!(test_heap.size() == 4);
+        assert!(test_heap.insert_extract(test_data_3, test_key_3).unwrap() == test_data_1);
+        assert!(test_heap.size() == 4);
     }
 
     #[test]
     fn max_heap_insert_extract() {
-        let mut test_heap = BinaryMaxHeap::new(None);
-        let (test_data_1, test_data_2, test_data_3, test_data_4) = (1, 512, 10240000, 1024);
-        let (test_key_1, test_key_2, test_key_3, test_key_4) = (10240000, 512, 1, 1024);
+        let mut test_heap = BinaryMaxHeap::new(Some(3));
+        let (test_data_1, test_data_2, test_data_3, test_data_4, test_data_5) = (1, 2, 3, 4, 3);
+        let (test_key_1, test_key_2, test_key_3, test_key_4, test_key_5) = (1, 2, 3, 400, 3);
 
-        test_heap.insert(test_data_1.clone(), test_key_3);
-        test_heap.insert(test_data_2.clone(), test_key_2);
-        test_heap.insert(test_data_3.clone(), test_key_1);
+        test_heap.insert(test_data_3.clone(), test_key_3);
+        test_heap.insert(test_data_1.clone(), test_key_1);
+        test_heap.insert(test_data_5.clone(), test_key_5);
+        test_heap.insert(test_data_4.clone(), test_key_4);
 
-        assert!(test_heap.size() == 3);
-        assert!(test_heap.insert_extract(test_data_4, test_key_4) == test_data_1);
-        assert!(test_heap.size() == 3);
+        assert!(test_heap.size() == 4);
+        assert!(test_heap.insert_extract(test_data_2, test_key_2).unwrap() == test_data_4);
+        assert!(test_heap.size() == 4);
     }
 
     #[test]
     fn heap_search() {
         let mut test_min_heap = BinaryMinHeap::new(None);
         let mut test_max_heap = BinaryMaxHeap::new(None);
-        let (test_data_1, test_data_2, test_data_3) = (1, 512, 10240000);
-        let (test_key_1, test_key_2, test_key_3) = (10240000, 512, 1);
+        let (test_data_1, test_data_2, test_data_3) = (1, 2, 3);
+        let (test_key_1, test_key_2, test_key_3) = (1, 2, 3);
 
-        test_min_heap.insert(test_data_1.clone(), test_key_3);
+        assert!(test_min_heap.search(test_key_1).is_err());
+        assert!(test_max_heap.search(test_key_1).is_err());
+
+        test_min_heap.insert(test_data_3.clone(), test_key_3);
         test_min_heap.insert(test_data_2.clone(), test_key_2);
-        test_min_heap.insert(test_data_3.clone(), test_key_1);
-        test_max_heap.insert(test_data_1.clone(), test_key_3);
+        test_min_heap.insert(test_data_1.clone(), test_key_1);
+        test_max_heap.insert(test_data_1.clone(), test_key_1);
         test_max_heap.insert(test_data_2.clone(), test_key_2);
-        test_max_heap.insert(test_data_3.clone(), test_key_1);
+        test_max_heap.insert(test_data_3.clone(), test_key_3);
 
         assert!(test_min_heap.size() == 3);
         assert!(test_min_heap.search(test_key_1).unwrap() == test_data_1);
@@ -426,19 +465,19 @@ mod tests {
         test_min_heap.insert(test_data_2.clone(), test_key_2);
         test_min_heap.insert(test_data_3.clone(), test_key_1);
         assert!(test_min_heap.is_empty() == false);
-        test_min_heap.extract();
-        test_min_heap.extract();
-        test_min_heap.extract();
+        let _ = test_min_heap.extract();
+        let _ = test_min_heap.extract();
+        let _ = test_min_heap.extract();
         assert!(test_max_heap.is_empty() == true);
 
         assert!(test_max_heap.is_empty() == true);
-        test_max_heap.insert(test_data_1.clone(), test_key_3);
-        test_max_heap.insert(test_data_2.clone(), test_key_2);
-        test_max_heap.insert(test_data_3.clone(), test_key_1);
+        let _ = test_max_heap.insert(test_data_1.clone(), test_key_3);
+        let _ = test_max_heap.insert(test_data_2.clone(), test_key_2);
+        let _ = test_max_heap.insert(test_data_3.clone(), test_key_1);
         assert!(test_max_heap.is_empty() == false);
-        test_max_heap.extract();
-        test_max_heap.extract();
-        test_max_heap.extract();
+        let _ = test_max_heap.extract();
+        let _ = test_max_heap.extract();
+        let _ = test_max_heap.extract();
         assert!(test_max_heap.is_empty() == true);
     }
 }
